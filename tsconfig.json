@@ -1,0 +1,15 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "typeRoots": ["./node_modules/@types"],
+    "types": [
+      "istanbul-lib-coverage",
+      "prop-types",
+      "node",
+      "yargs",
+      "node-forge"
+    ],
+    "skipLibCheck": true
+  }
+}

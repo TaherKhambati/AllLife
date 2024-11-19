@@ -1,0 +1,90 @@
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# Native
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS system files
+.DS_Store
+.CFUserTextEncoding
+.bash_profile
+.lesshst
+.localized
+.viminfo
+
+# Command history
+.bash_history
+.zsh_history
+
+# Personal Configuration Files
+.editorconfig
+.gitconfig
+.zshrc
+.zshrc.pre-oh-my-zsh
+.tcshrc
+.xonshrc
+
+# Application and User Data
+.anaconda/
+.anyconnect/
+.cache/
+.cisco/
+.conda/
+.continuum/
+.cups/
+.cursor/
+.idlerc/
+.ipython/
+.jupyter/
+.local/
+.matplotlib/
+.npm/
+.oh-my-zsh/
+.oracle_jre_usage/
+.r/
+.rstudio-desktop/
+.vscode/
+.zsh_sessions/
+
+# Temporary and Lock Files
+*.lock
+~$*
+
+# Media Files, Screenshots, and Downloads
+*.heic
+*.png
+*.jpeg
+*.mov
+*.pdf
+*.docx
+
+# OS/Editor Folders
+Applications/
+Creative Cloud Files/
+Documents/
+Downloads/
+Library/
+Movies/
+Music/
+OneDrive - Duke University/
+Pictures/
+Public/
+
