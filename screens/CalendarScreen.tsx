@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Text} from 'react-native'
+import { View, StyleSheet, Text, ScrollView, TouchableOpacity, FlatList} from 'react-native'
 import { Calendar } from 'react-native-calendars';
 import { authorizeAppleCalendar, fetchAppleCalendarEvents } from '../cal_integrations/appleCalendarIntegration';
 import { authorizeGmailCalendar, fetchGmailCalendarEvents } from '../cal_integrations/gmailCalendarIntegration';
@@ -16,7 +16,6 @@ const CalendarScreen: React.FC = () => {
   const [viewMode, setViewMode] = useState<'calendar' | 'day'>('calendar');
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>('');
-
 
   useEffect(() => {
     const fetchAllEvents = async () => {
@@ -47,27 +46,84 @@ const CalendarScreen: React.FC = () => {
     console.log('Day pressed:', day.dateString);
     setSelectedDate(day.dateString);
     setViewMode('day');
-};
+  };
 
+  const renderDateItem = ({ item }: { item: string }) => (
+    <TouchableOpacity onPress={() => handleDayPress({ dateString: item })}>
+      <View style={[styles.dateItem, item === selectedDate && styles.selectedDateItem]}>
+        <Text style={[styles.dateText, item === selectedDate && styles.selectedDateText]}>
+          {new Date(item).getDate()}
+        </Text>
+        <Text style={styles.dayText}>{['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(item).getDay()]}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+
+  const getEventsforSelectedDate = () => { 
+    return events.filter(event => {
+      const eventDate = event.start.toISOString().split('T')[0]; 
+      return eventDate === selectedDate;
+    });
+  };
 
 return (
   <View style={styles.container}>
-    {viewMode === 'calendar' ? (
-      <>
-        <Text style={styles.selectedDateText}>Selected Date: {selectedDate || 'None'}</Text>
-        <Calendar
-          onDayPress={handleDayPress}
-          theme={calendarTheme}
-        />
-      </>
-    ) : (
-      <View style={styles.dayContainer}>
-        <Text style={styles.dayViewText}>Detailed View for: {selectedDate}</Text>
-        <Text style={styles.backButton} onPress={() => setViewMode('calendar')}>Go Back to Calendar</Text>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => setViewMode('calendar')}>
+        <Text style={styles.headerTitle}>November</Text>
+        </TouchableOpacity>
+        <TouchableOpacity>
+          <Text style={styles.headerIcon}>{"🔍"}</Text>
+        </TouchableOpacity>
       </View>
-    )}
-  </View>
-);
+
+    
+      {/* Main Content - Calendar or Day View */}
+      {viewMode === 'calendar' ? (
+        <>
+          
+          <Calendar
+            onDayPress={handleDayPress}
+            theme={calendarTheme}
+          />
+        </>
+      ) : (
+        <>
+        <FlatList
+          horizontal
+          data={Array.from({ length: 31 }).map((_, i) =>
+            new Date(new Date().getFullYear(), new Date().getMonth(), i + 1).toISOString().split('T')[0]
+          )}
+          renderItem={renderDateItem}
+          keyExtractor={(item) => item}
+          showsHorizontalScrollIndicator={false}
+          style={styles.horizontalDatePicker}
+        />
+        <ScrollView contentContainerStyle={styles.contentContainer}>
+          {Array.from({ length: 24 }).map((_, index) => (
+            <View key={index} style={styles.hourRow}>
+              <Text style={styles.hourText}>{`${index}:00`}</Text>
+              <View style={styles.eventSlot}>
+                {getEventsforSelectedDate().map(event => {
+                  const eventStartHour = new Date(event.start).getHours();
+                  if (eventStartHour === index) {
+                    return (
+                      <Text key={event.id} style={styles.eventText}>
+                        {event.title} ({event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})
+                      </Text>
+                    );
+                  }
+                  return null;
+                })}
+              </View>
+            </View>
+          ))}
+        </ScrollView>
+        </>
+      )}
+    </View>
+  );
 };
 
 // Theme object for the calendar
@@ -84,9 +140,12 @@ const calendarTheme = {
 const styles = StyleSheet.create({
   dayContainer: {
     flex: 1,
+    backgroundColor: '#121212',
+  },
+  contentContainer: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#121212',
   },
   dayViewText: {
     color: '#ffffff',
@@ -108,7 +167,62 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#121212',
     padding: 20,
-  }
+  }, 
+  hourRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#333',
+    paddingVertical: 10,
+  },
+  hourText: {
+    color: '#a9a9a9',
+    width: 50,
+    textAlign: 'center',
+  },
+  eventSlot: {
+    flex: 1,
+    paddingLeft: 10,
+  },
+  eventText: {
+    color: '#ffffff',
+    fontSize: 14,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#1e1e1e',
+  },
+  headerTitle: {
+    fontSize: 24,
+    color: '#ffffff',
+  },
+  headerIcon: {
+    fontSize: 24,
+    color: '#ffffff',
+  },
+  horizontalDatePicker: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  dateItem: {
+    alignItems: 'center',
+    padding: 10,
+  },
+  selectedDateItem: {
+    backgroundColor: '#00ffcc',
+    borderRadius: 10,
+  },
+  dateText: {
+    color: '#ffffff',
+    fontSize: 16,
+  },
+  dayText: {
+    color: '#a9a9a9',
+    fontSize: 12,
+  },
 });
 
 export default CalendarScreen;
