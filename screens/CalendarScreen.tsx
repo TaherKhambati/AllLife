@@ -48,16 +48,22 @@ const CalendarScreen: React.FC = () => {
     setViewMode('day');
   };
 
-  const renderDateItem = ({ item }: { item: string }) => (
-    <TouchableOpacity onPress={() => handleDayPress({ dateString: item })}>
-      <View style={[styles.dateItem, item === selectedDate && styles.selectedDateItem]}>
-        <Text style={[styles.dateText, item === selectedDate && styles.selectedDateText]}>
-          {new Date(item).getDate()}
-        </Text>
-        <Text style={styles.dayText}>{['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(item).getDay()]}</Text>
-      </View>
-    </TouchableOpacity>
-  );
+  const renderDateItem = (item: string) => {
+    const isSelected = item === selectedDate;
+    return (
+      <TouchableOpacity onPress={() => setSelectedDate(item)} style={styles.dateTouchable}>
+        <View style={[styles.dateItem, isSelected && styles.selectedDateItem]}>
+          <Text style={[styles.dateText]}>
+            {new Date(item).getDate()}
+          </Text>
+          <Text style={[styles.dayText]}>
+            {new Date(item).toLocaleString('default', { weekday: 'short' })}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+  
 
   const getEventsforSelectedDate = () => { 
     return events.filter(event => {
@@ -65,7 +71,7 @@ const CalendarScreen: React.FC = () => {
       return eventDate === selectedDate;
     });
   };
-
+  
 return (
   <View style={styles.container}>
       {/* Header */}
@@ -93,17 +99,18 @@ return (
         <FlatList
           horizontal
           data={Array.from({ length: 31 }).map((_, i) =>
-            new Date(new Date().getFullYear(), new Date().getMonth(), i + 1).toISOString().split('T')[0]
+          new Date(new Date().getFullYear(), new Date().getMonth(), i + 1).toISOString().split('T')[0]
           )}
-          renderItem={renderDateItem}
+          renderItem={({ item }) => renderDateItem(item)}
           keyExtractor={(item) => item}
           showsHorizontalScrollIndicator={false}
           style={styles.horizontalDatePicker}
-        />
+          contentContainerStyle={{ paddingHorizontal: 16 }}
+          />
         <ScrollView contentContainerStyle={styles.contentContainer}>
           {Array.from({ length: 24 }).map((_, index) => (
             <View key={index} style={styles.hourRow}>
-              <Text style={styles.hourText}>{`${index}:00`}</Text>
+              <Text style={styles.hourText}>{`${index % 12 === 0 ? 12 : index % 12} ${index < 12 ? 'AM' : 'PM'}`}</Text>
               <View style={styles.eventSlot}>
                 {getEventsforSelectedDate().map(event => {
                   const eventStartHour = new Date(event.start).getHours();
@@ -137,7 +144,7 @@ const calendarTheme = {
   arrowColor: '#00ffcc',
 };
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create({  
   dayContainer: {
     flex: 1,
     backgroundColor: '#121212',
@@ -206,10 +213,13 @@ const styles = StyleSheet.create({
   horizontalDatePicker: {
     borderBottomWidth: 1,
     borderBottomColor: '#333',
+    paddingVertical: 10,
   },
   dateItem: {
     alignItems: 'center',
-    padding: 10,
+    paddingVertical: 5,  // Consistent vertical padding
+    paddingHorizontal: 10,
+    minWidth: 50,  // Set a minimum width to ensure all items are consistent
   },
   selectedDateItem: {
     backgroundColor: '#00ffcc',
@@ -218,10 +228,15 @@ const styles = StyleSheet.create({
   dateText: {
     color: '#ffffff',
     fontSize: 16,
+    textAlign: 'center',  // Ensure text is aligned center
   },
   dayText: {
     color: '#a9a9a9',
     fontSize: 12,
+    textAlign: 'center',
+  },
+  dateTouchable: {
+    marginHorizontal: 5,  // Spacing between items in the horizontal list
   },
 });
 
@@ -233,3 +248,4 @@ export default CalendarScreen;
 // - These implementations would require API keys and proper handling for user permissions, along with utilizing the corresponding calendar APIs to fetch events.
 // - The "react-native-calendar-component" is used as an example. Replace it with an appropriate calendar component that fits your UI needs.
 // - Make sure to handle permission requests and OAuth properly to maintain user privacy and security.
+
