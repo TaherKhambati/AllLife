@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Text, ScrollView, TouchableOpacity, FlatList} from 'react-native'
-import { Calendar } from 'react-native-calendars';
+import { CalendarList } from 'react-native-calendars';
 import { authorizeAppleCalendar, fetchAppleCalendarEvents } from '../cal_integrations/appleCalendarIntegration';
 import { authorizeGmailCalendar, fetchGmailCalendarEvents } from '../cal_integrations/gmailCalendarIntegration';
 import { authorizeOutlookCalendar, fetchOutlookCalendarEvents } from '../cal_integrations/outlookCalendarIntegration';
+import { Dimensions } from 'react-native';
+
 
 interface CalendarEvent {
   id: string;
@@ -12,10 +14,17 @@ interface CalendarEvent {
   end: Date;
 }
 
+const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
+
 const CalendarScreen: React.FC = () => {
   const [viewMode, setViewMode] = useState<'calendar' | 'day'>('calendar');
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>('');
+  const [currentMonth, setCurrentMonth] = useState<string>('November');
+  const [currentYear, setCurrentYear] = useState<number>(2024);
+  const [currentCalendarDate, setCurrentCalendarDate] = useState<string>(new Date().toISOString().split('T')[0]);
+
 
   useEffect(() => {
     const fetchAllEvents = async () => {
@@ -43,9 +52,21 @@ const CalendarScreen: React.FC = () => {
   }, []);
 
   const handleDayPress = (day: { dateString: string }) => {
-    console.log('Day pressed:', day.dateString);
     setSelectedDate(day.dateString);
+  
+    // Update the current month, year, and calendar date reference
+    const date = new Date(day.dateString);
+    const selectedMonth = date.toLocaleString('default', { month: 'long' });
+    const selectedYear = date.getFullYear();
+    setCurrentMonth(selectedMonth);
+    setCurrentYear(selectedYear);
+    setCurrentCalendarDate(day.dateString);
+  
     setViewMode('day');
+  };
+
+  const handleReturnToCalendar = () => {
+    setViewMode('calendar');
   };
 
   const renderDateItem = (item: string) => {
@@ -75,23 +96,30 @@ const CalendarScreen: React.FC = () => {
 return (
   <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => setViewMode('calendar')}>
-        <Text style={styles.headerTitle}>November</Text>
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <Text style={styles.headerIcon}>{"🔍"}</Text>
+      {viewMode == 'day' && ( 
+        <View style= {styles.header}>
+        <TouchableOpacity onPress={handleReturnToCalendar}>
+          <Text style={styles.headerTitle}>{`${currentMonth} ${currentYear}`}</Text>
         </TouchableOpacity>
       </View>
-
+      )}
     
       {/* Main Content - Calendar or Day View */}
       {viewMode === 'calendar' ? (
         <>
-          
-          <Calendar
+          <CalendarList
             onDayPress={handleDayPress}
             theme={calendarTheme}
+            pastScrollRange={12}
+            futureScrollRange={12}
+            scrollEnabled={true}
+            showScrollIndicator={false}
+            horizontal={true}
+            pagingEnabled={true}
+            calendarWidth={screenWidth}
+            current={currentCalendarDate}  // Set current month based on tracked date
+            style={{ height: screenHeight - 150 }}
+            hideExtraDays={false}
           />
         </>
       ) : (
@@ -107,7 +135,7 @@ return (
           style={styles.horizontalDatePicker}
           contentContainerStyle={{ paddingHorizontal: 16 }}
           />
-        <ScrollView contentContainerStyle={styles.contentContainer}>
+        <ScrollView contentContainerStyle={styles.dayViewContent}>
           {Array.from({ length: 24 }).map((_, index) => (
             <View key={index} style={styles.hourRow}>
               <Text style={styles.hourText}>{`${index % 12 === 0 ? 12 : index % 12} ${index < 12 ? 'AM' : 'PM'}`}</Text>
@@ -142,15 +170,28 @@ const calendarTheme = {
   todayTextColor: '#00ffcc',
   monthTextColor: '#ffffff',
   arrowColor: '#00ffcc',
+  textDisabledColor: '#555555`'
 };
 
-const styles = StyleSheet.create({  
+const styles = StyleSheet.create({
+  dayViewContent: {
+    flexGrow: 1,
+    paddingTop: 10,
+    alignItems: 'flex-start',
+  },  
+  minimizedHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: '#1e1e1e',
+  }, 
   dayContainer: {
     flex: 1,
     backgroundColor: '#121212',
   },
   contentContainer: {
-    flexGrow: 1,
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -173,7 +214,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#121212',
-    padding: 20,
   }, 
   hourRow: {
     flexDirection: 'row',
