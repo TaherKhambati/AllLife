@@ -1,23 +1,33 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { View, StyleSheet, Text, ScrollView, TouchableOpacity, FlatList} from 'react-native'
 import { CalendarList } from 'react-native-calendars';
 import { authorizeAppleCalendar, fetchAppleCalendarEvents } from '../cal_integrations/appleCalendarIntegration';
 import { authorizeGmailCalendar, fetchGmailCalendarEvents } from '../cal_integrations/gmailCalendarIntegration';
 import { authorizeOutlookCalendar, fetchOutlookCalendarEvents } from '../cal_integrations/outlookCalendarIntegration';
 import { Dimensions } from 'react-native';
+import { UserContext } from '../contexts/UserContext';
 
 
-interface CalendarEvent {
+function CalendarScreen(): JSX.Element {
+  const userContext = useContext(UserContext);
+
+  if (!userContext) {
+      throw new Error('UserContext must be used within a UserProvider');
+  }
+
+  const { userProfile } = userContext;
+
+  // Move interface outside the function
+  interface CalendarEvent {
   id: string;
   title: string;
   start: Date;
   end: Date;
-}
+  }
 
-const screenWidth = Dimensions.get('window').width;
-const screenHeight = Dimensions.get('window').height;
+  const screenWidth = Dimensions.get('window').width;
+  const screenHeight = Dimensions.get('window').height;
 
-const CalendarScreen: React.FC = () => {
   const [viewMode, setViewMode] = useState<'calendar' | 'day'>('calendar');
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>('');
@@ -160,6 +170,7 @@ return (
     </View>
   );
 };
+
 
 // Theme object for the calendar
 const calendarTheme = {

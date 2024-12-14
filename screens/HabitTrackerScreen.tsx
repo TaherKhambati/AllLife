@@ -1,9 +1,18 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import {View, Text, StyleSheet, TextInput, Pressable, ScrollView, KeyboardAvoidingView, Platform, Keyboard} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import uuid from 'react-native-uuid';
+import { UserContext } from '../contexts/UserContext';
 
 function HabitTrackerScreen() {
+  const userContext = useContext(UserContext);
+
+  if (!userContext) {
+      throw new Error('UserContext must be used within a UserProvider');
+  }
+
+  const { userProfile } = userContext;
+
   interface Habit {
     id: string;
     name: string;
